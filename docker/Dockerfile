@@ -12,17 +12,19 @@ ENV UV_LINK_MODE=copy
 
 # Install the project's dependencies using the lockfile and settings
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=/backend/uv.lock,target=uv.lock \
+    --mount=type=bind,source=/backend/pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --no-dev
 
 # Add the rest of the source code
 COPY backend /app/backend
-COPY pyproject.toml uv.lock .python-version /app/
+COPY frontend /app/frontend
 
 # Install the project
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    --mount=type=bind,source=/backend/uv.lock,target=uv.lock \
+    --mount=type=bind,source=/backend/pyproject.toml,target=pyproject.toml \
+    uv sync --locked
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
