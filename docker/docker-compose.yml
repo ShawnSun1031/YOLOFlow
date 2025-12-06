@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./data:/app/data
+
+  mlflow:
+    build: .
+    command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root /app/mlruns --host 0.0.0.0 --port 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/app/mlruns
+    environment:
+      - MLFLOW_SERVER_DEFAULT_ARTIFACT_ROOT=/app/mlruns
+
+# Note: For MLflow you can run a local server using the command in README.md

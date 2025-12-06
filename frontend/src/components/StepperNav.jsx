@@ -1,0 +1,53 @@
+import { useState } from 'react';
+import { Stepper, Stack, Text, UnstyledButton, Group, rem } from '@mantine/core';
+import { IconDatabase, IconCpu, IconDeviceFloppy, IconChevronRight } from '@tabler/icons-react';
+
+const steps = [
+    { icon: IconDatabase, label: 'Dataset', description: 'Manage Data' },
+    { icon: IconCpu, label: 'Training', description: 'Train Model' },
+    { icon: IconDeviceFloppy, label: 'Management', description: 'Manage Models' },
+];
+
+export function StepperNav({ active, setActive, collapsed }) {
+    // If collapsed, we show custom icon-only UI mimicking stepper state
+    // If expanded, we show full Mantine Stepper vertical
+
+    return (
+        <Stack gap="md" py="md">
+            {!collapsed ? (
+                <Stepper active={active} onStepClick={setActive} orientation="vertical" size="sm">
+                    {steps.map((step, index) => (
+                        <Stepper.Step
+                            key={index}
+                            label={step.label}
+                            description={step.description}
+                            icon={<step.icon style={{ width: rem(18), height: rem(18) }} />}
+                        />
+                    ))}
+                </Stepper>
+            ) : (
+                <Stack align="center" gap="lg">
+                    {steps.map((step, index) => {
+                        const Icon = step.icon;
+                        const isActive = index === active;
+                        const isCompleted = index < active;
+                        const color = isActive ? 'blue' : isCompleted ? 'blue' : 'gray';
+
+                        return (
+                            <UnstyledButton
+                                key={index}
+                                onClick={() => setActive(index)}
+                                style={{
+                                    color: 'var(--mantine-color-text)',
+                                    opacity: isActive || isCompleted ? 1 : 0.5
+                                }}
+                            >
+                                <Icon style={{ width: rem(24), height: rem(24), color: `var(--mantine-color-${color}-6)` }} />
+                            </UnstyledButton>
+                        );
+                    })}
+                </Stack>
+            )}
+        </Stack>
+    );
+}
