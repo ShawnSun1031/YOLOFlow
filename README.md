@@ -63,3 +63,5 @@ Project structure highlights
 - `Dockerfile` — backend container image (example)
 
 Next steps: implement frontend (`frontend/`) and CI/tests.
+
+Docker registry: https://hub.docker.com/r/dicky1031/yoloflow
