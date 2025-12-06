@@ -22,10 +22,13 @@ export default function App() {
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Navigate to="/dataset" replace />} />
                     <Route path="dataset" element={<DatasetPage />} />
-                    <Route path="training" element={<PlaceholderPage title="Training Page (Todo)" />} />
+                    <Route
+                        path="training"
+                        element={<PlaceholderPage title="Training Page (Todo)" />}
+                    />
                     <Route path="models" element={<PlaceholderPage title="Models Page (Todo)" />} />
                 </Route>
             </Routes>
         </BrowserRouter>
-    )
+    );
 }

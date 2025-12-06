@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from .. import models, schemas
 from ..database import get_db
 
 router = APIRouter(prefix="/api/flows", tags=["flows"])
+
 
 @router.post("/", response_model=schemas.Flow)
 def create_flow(flow: schemas.FlowCreate, db: Session = Depends(get_db)):
@@ -15,10 +15,11 @@ def create_flow(flow: schemas.FlowCreate, db: Session = Depends(get_db)):
     db.refresh(db_flow)
     return db_flow
 
-@router.get("/", response_model=List[schemas.Flow])
+
+@router.get("/", response_model=list[schemas.Flow])
 def read_flows(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    flows = db.query(models.Flow).offset(skip).limit(limit).all()
-    return flows
+    return db.query(models.Flow).offset(skip).limit(limit).all()
+
 
 @router.get("/{flow_id}", response_model=schemas.Flow)
 def read_flow(flow_id: str, db: Session = Depends(get_db)):

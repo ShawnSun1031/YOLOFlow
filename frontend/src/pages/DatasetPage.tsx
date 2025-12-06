@@ -1,7 +1,21 @@
 import { useState } from 'react';
 import {
-    Container, Title, Paper, Group, Button, TextInput, Select, Textarea,
-    Table, ScrollArea, Modal, Checkbox, Pagination, LoadingOverlay, Badge, Stack
+    Container,
+    Title,
+    Paper,
+    Group,
+    Button,
+    TextInput,
+    Select,
+    Textarea,
+    Table,
+    ScrollArea,
+    Modal,
+    Checkbox,
+    Pagination,
+    LoadingOverlay,
+    Badge,
+    Stack,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -41,7 +55,7 @@ interface DatasetForm {
 
 export default function DatasetPage() {
     const [opened, { open, close }] = useDisclosure(false); // Modal for upload
-    const [, { }] = useDisclosure(false); // Modal for preview - actually used inside DatasetImagesView or we might want to lift state?
+    // Modal for preview - actually used inside DatasetImagesView or we might want to lift state?
     // In original code: const [previewOpened, { open: openPreview, close: closePreview }] = useDisclosure(false);
     // But it wasn't used? Ah, I see `DatasetImagesView` has its own state. The openPreview/closePreview were unused in main component?
     // Checking original code: `previewOpened` unused. `openPreview` unused. `closePreview` unused.
@@ -50,7 +64,10 @@ export default function DatasetPage() {
     const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
 
     const [formState, setFormState] = useState<DatasetForm>({
-        name: '', path: '', type: 'yolo', description: ''
+        name: '',
+        path: '',
+        type: 'yolo',
+        description: '',
     });
 
     const queryClient = useQueryClient();
@@ -61,7 +78,7 @@ export default function DatasetPage() {
         queryFn: async () => {
             const res = await api.get('/stepper/datasets');
             return res.data;
-        }
+        },
     });
 
     // Create Dataset Mutation
@@ -70,7 +87,7 @@ export default function DatasetPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['datasets'] });
             close();
-        }
+        },
     });
 
     const handleSubmit = () => {
@@ -107,26 +124,37 @@ export default function DatasetPage() {
                     <Textarea
                         label="Description"
                         value={formState.description}
-                        onChange={(e) => setFormState({ ...formState, description: e.target.value })}
+                        onChange={(e) =>
+                            setFormState({ ...formState, description: e.target.value })
+                        }
                     />
-                    <Button onClick={handleSubmit} loading={createMutation.isPending}>Submit</Button>
+                    <Button onClick={handleSubmit} loading={createMutation.isPending}>
+                        Submit
+                    </Button>
                 </Stack>
             </Modal>
 
             {/* List of datasets */}
             <Group align="flex-start" py="md">
                 <Paper flex={1} withBorder p="md">
-                    <Title order={4} mb="md">Available Datasets</Title>
-                    {isLoading ? <LoadingOverlay visible /> : (
+                    <Title order={4} mb="md">
+                        Available Datasets
+                    </Title>
+                    {isLoading ? (
+                        <LoadingOverlay visible />
+                    ) : (
                         <Stack>
-                            {datasets?.map(ds => (
+                            {datasets?.map((ds) => (
                                 <Paper
                                     key={ds.id}
                                     withBorder
                                     p="sm"
                                     style={{
                                         cursor: 'pointer',
-                                        borderColor: selectedDatasetId === ds.id ? 'var(--mantine-color-blue-5)' : undefined
+                                        borderColor:
+                                            selectedDatasetId === ds.id
+                                                ? 'var(--mantine-color-blue-5)'
+                                                : undefined,
                                     }}
                                     onClick={() => setSelectedDatasetId(ds.id)}
                                 >
@@ -135,7 +163,9 @@ export default function DatasetPage() {
                                             <Title order={5}>{ds.name}</Title>
                                             <Badge>{ds.type}</Badge>
                                         </div>
-                                        <Badge color="gray">{new Date(ds.created_at).toLocaleDateString()}</Badge>
+                                        <Badge color="gray">
+                                            {new Date(ds.created_at).toLocaleDateString()}
+                                        </Badge>
                                     </Group>
                                 </Paper>
                             ))}
@@ -144,11 +174,8 @@ export default function DatasetPage() {
                 </Paper>
 
                 {/* Images Table for Selected Dataset */}
-                {selectedDatasetId && (
-                    <DatasetImagesView datasetId={selectedDatasetId} />
-                )}
+                {selectedDatasetId && <DatasetImagesView datasetId={selectedDatasetId} />}
             </Group>
-
         </Container>
     );
 }
@@ -164,7 +191,7 @@ function DatasetImagesView({ datasetId }: DatasetImagesViewProps) {
         queryFn: async () => {
             const res = await api.get(`/stepper/datasets/${datasetId}`);
             return res.data;
-        }
+        },
     });
 
     const [page, setPage] = useState(1);
@@ -173,10 +200,15 @@ function DatasetImagesView({ datasetId }: DatasetImagesViewProps) {
     const [previewImage, setPreviewImage] = useState<ImageMetadata | null>(null);
     const [showBox, setShowBox] = useState(true);
 
-    if (isLoading || !dataset) return <Paper flex={2} p="md" withBorder><LoadingOverlay visible /></Paper>;
+    if (isLoading || !dataset)
+        return (
+            <Paper flex={2} p="md" withBorder>
+                <LoadingOverlay visible />
+            </Paper>
+        );
 
-    const filteredImages = (dataset.images_metadata || []).filter(img =>
-        img.name.toLowerCase().includes(search.toLowerCase())
+    const filteredImages = (dataset.images_metadata || []).filter((img) =>
+        img.name.toLowerCase().includes(search.toLowerCase()),
     );
 
     const total = filteredImages.length;
@@ -184,7 +216,9 @@ function DatasetImagesView({ datasetId }: DatasetImagesViewProps) {
 
     return (
         <Paper flex={3} withBorder p="md">
-            <Title order={4} mb="md">{dataset.name} - Images</Title>
+            <Title order={4} mb="md">
+                {dataset.name} - Images
+            </Title>
 
             <Group mb="md">
                 <TextInput
@@ -207,16 +241,36 @@ function DatasetImagesView({ datasetId }: DatasetImagesViewProps) {
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                        {paginatedImages.map(img => (
+                        {paginatedImages.map((img) => (
                             <Table.Tr key={img.id}>
                                 <Table.Td>
-                                    <img src={img.url} alt="mini" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} />
+                                    <img
+                                        src={img.url}
+                                        alt="mini"
+                                        style={{
+                                            width: 40,
+                                            height: 40,
+                                            objectFit: 'cover',
+                                            borderRadius: 4,
+                                        }}
+                                    />
                                 </Table.Td>
                                 <Table.Td>{img.name}</Table.Td>
                                 <Table.Td>{img.size}</Table.Td>
-                                <Table.Td>{img.tags.map(t => <Badge key={t} size="xs" mr={4}>{t}</Badge>)}</Table.Td>
                                 <Table.Td>
-                                    <Button size="xs" variant="light" leftSection={<IconEye size={12} />} onClick={() => setPreviewImage(img)}>
+                                    {img.tags.map((t) => (
+                                        <Badge key={t} size="xs" mr={4}>
+                                            {t}
+                                        </Badge>
+                                    ))}
+                                </Table.Td>
+                                <Table.Td>
+                                    <Button
+                                        size="xs"
+                                        variant="light"
+                                        leftSection={<IconEye size={12} />}
+                                        onClick={() => setPreviewImage(img)}
+                                    >
                                         Details
                                     </Button>
                                 </Table.Td>
@@ -226,14 +280,28 @@ function DatasetImagesView({ datasetId }: DatasetImagesViewProps) {
                 </Table>
             </ScrollArea>
 
-            <Pagination total={Math.ceil(total / pageSize)} value={page} onChange={setPage} mt="md" />
+            <Pagination
+                total={Math.ceil(total / pageSize)}
+                value={page}
+                onChange={setPage}
+                mt="md"
+            />
 
             {/* Detail Modal with Canvas */}
-            <Modal size="xl" opened={!!previewImage} onClose={() => setPreviewImage(null)} title={previewImage?.name}>
+            <Modal
+                size="xl"
+                opened={!!previewImage}
+                onClose={() => setPreviewImage(null)}
+                title={previewImage?.name}
+            >
                 {previewImage && (
                     <Stack>
                         <Group>
-                            <Checkbox label="Show Bounding Boxes" checked={showBox} onChange={(e) => setShowBox(e.currentTarget.checked)} />
+                            <Checkbox
+                                label="Show Bounding Boxes"
+                                checked={showBox}
+                                onChange={(e) => setShowBox(e.currentTarget.checked)}
+                            />
                         </Group>
                         <ImageCanvas
                             src={previewImage.url}
@@ -241,10 +309,14 @@ function DatasetImagesView({ datasetId }: DatasetImagesViewProps) {
                             boxes={[
                                 // Generating mock boxes based on tags for demo
                                 [0, 0.5, 0.5, 0.4, 0.3], // class 0, center, center, w, h
-                                [1, 0.2, 0.2, 0.1, 0.1]
+                                [1, 0.2, 0.2, 0.1, 0.1],
                             ]}
                         />
-                        <Textarea label="Description" readOnly value={`Path: ${previewImage.path}\nSize: ${previewImage.size}\nFormat: ${previewImage.format}`} />
+                        <Textarea
+                            label="Description"
+                            readOnly
+                            value={`Path: ${previewImage.path}\nSize: ${previewImage.size}\nFormat: ${previewImage.format}`}
+                        />
                     </Stack>
                 )}
             </Modal>

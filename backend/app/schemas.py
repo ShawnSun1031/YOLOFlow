@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -8,10 +8,10 @@ from pydantic import BaseModel
 class DatasetBase(BaseModel):
     name: str
     path: str
-    url: Optional[str] = None
+    url: str | None = None
     type: str  # e.g. 'yolo', 'coco'
-    description: Optional[str] = None
-    tags: List[str] = []
+    description: str | None = None
+    tags: list[str] = []
 
 
 class DatasetCreate(DatasetBase):
@@ -21,7 +21,7 @@ class DatasetCreate(DatasetBase):
 class Dataset(DatasetBase):
     id: str
     created_at: datetime
-    images_metadata: List[Dict[str, Any]] = []
+    images_metadata: list[dict[str, Any]] = []
 
     class Config:
         from_attributes = True
@@ -29,7 +29,7 @@ class Dataset(DatasetBase):
 
 # --- Training Schemas ---
 class TrainingBase(BaseModel):
-    hyperparameters: Dict[str, Any]
+    hyperparameters: dict[str, Any]
 
 
 class TrainingCreate(TrainingBase):
@@ -39,7 +39,7 @@ class TrainingCreate(TrainingBase):
 class Training(TrainingBase):
     id: str
     status: str
-    mlflow_run_id: Optional[str] = None
+    mlflow_run_id: str | None = None
     created_at: datetime
 
     class Config:
@@ -50,7 +50,7 @@ class Training(TrainingBase):
 class ModelBase(BaseModel):
     name: str
     path: str
-    metrics: Optional[Dict[str, Any]] = None
+    metrics: dict[str, Any] | None = None
 
 
 class Model(ModelBase):
@@ -63,22 +63,22 @@ class Model(ModelBase):
 
 # --- Flow Schemas ---
 class FlowBase(BaseModel):
-    name: Optional[str] = None
+    name: str | None = None
     status: str = "draft"
 
 
 class FlowCreate(FlowBase):
-    dataset_id: Optional[str] = None
-    training_id: Optional[str] = None
-    model_id: Optional[str] = None
+    dataset_id: str | None = None
+    training_id: str | None = None
+    model_id: str | None = None
 
 
 class Flow(FlowBase):
     id: str
     created_at: datetime
-    dataset: Optional[Dataset] = None
-    training: Optional[Training] = None
-    model: Optional[Model] = None
+    dataset: Dataset | None = None
+    training: Training | None = None
+    model: Model | None = None
 
     class Config:
         from_attributes = True

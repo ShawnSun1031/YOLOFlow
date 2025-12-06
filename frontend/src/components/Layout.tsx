@@ -32,11 +32,25 @@ export function Layout() {
             <AppShell.Header>
                 <Group h="100%" px="md" justify="space-between">
                     <Group>
-                        <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" />
+                        <Burger
+                            opened={mobileOpened}
+                            onClick={toggleMobile}
+                            hiddenFrom="sm"
+                            size="sm"
+                        />
                         <Title order={3}>YOLOFlow</Title>
                     </Group>
-                    <ActionIcon variant="subtle" color="gray" onClick={toggleDesktop} visibleFrom="sm">
-                        {desktopOpened ? <IconLayoutSidebarLeftCollapse style={{ width: rem(22) }} /> : <IconLayoutSidebarLeftExpand style={{ width: rem(22) }} />}
+                    <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        onClick={toggleDesktop}
+                        visibleFrom="sm"
+                    >
+                        {desktopOpened ? (
+                            <IconLayoutSidebarLeftCollapse style={{ width: rem(22) }} />
+                        ) : (
+                            <IconLayoutSidebarLeftExpand style={{ width: rem(22) }} />
+                        )}
                     </ActionIcon>
                 </Group>
             </AppShell.Header>

@@ -44,10 +44,16 @@ export function StepperNav({ active, setActive, collapsed }: StepperNavProps) {
                                 onClick={() => setActive(index)}
                                 style={{
                                     color: 'var(--mantine-color-text)',
-                                    opacity: isActive || isCompleted ? 1 : 0.5
+                                    opacity: isActive || isCompleted ? 1 : 0.5,
                                 }}
                             >
-                                <StepIcon style={{ width: rem(24), height: rem(24), color: `var(--mantine-color-${color}-6)` }} />
+                                <StepIcon
+                                    style={{
+                                        width: rem(24),
+                                        height: rem(24),
+                                        color: `var(--mantine-color-${color}-6)`,
+                                    }}
+                                />
                             </UnstyledButton>
                         );
                     })}
