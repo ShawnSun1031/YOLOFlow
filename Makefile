@@ -18,3 +18,11 @@ format-backend:
 lint: lint-frontend lint-backend
 
 format: format-frontend format-backend
+
+web-dev:
+	cd frontend \
+	&& pnpm run dev
+
+api-dev:
+	cd backend \
+	&& uv run uvicorn app.main:app --reload
