@@ -12,7 +12,7 @@ export function Layout() {
     const [activeStep, setActiveStep] = useState(0);
     const navigate = useNavigate();
 
-    const handleStepChange = (nextStep) => {
+    const handleStepChange = (nextStep: number) => {
         setActiveStep(nextStep);
         if (nextStep === 0) navigate('/dataset');
         if (nextStep === 1) navigate('/training');

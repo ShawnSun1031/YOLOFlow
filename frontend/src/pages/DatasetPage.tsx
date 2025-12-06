@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     Container, Title, Paper, Group, Button, TextInput, Select, Textarea,
     Table, ScrollArea, Modal, Checkbox, Pagination, LoadingOverlay, Badge, Stack
@@ -12,20 +12,51 @@ import { ImageCanvas } from '../components/ImageCanvas';
 // API Client (can be moved to separate file)
 const api = axios.create({ baseURL: 'http://localhost:8000/api' });
 
+interface ImageMetadata {
+    id: string | number;
+    name: string;
+    url: string;
+    size: string;
+    tags: string[];
+    path: string;
+    format: string;
+}
+
+interface Dataset {
+    id: number;
+    name: string;
+    path: string;
+    type: string;
+    description: string;
+    created_at: string;
+    images_metadata?: ImageMetadata[];
+}
+
+interface DatasetForm {
+    name: string;
+    path: string;
+    type: string;
+    description: string;
+}
+
 export default function DatasetPage() {
     const [opened, { open, close }] = useDisclosure(false); // Modal for upload
-    const [previewOpened, { open: openPreview, close: closePreview }] = useDisclosure(false); // Modal for preview
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [showBoxes, setShowBoxes] = useState(true);
+    const [, { }] = useDisclosure(false); // Modal for preview - actually used inside DatasetImagesView or we might want to lift state?
+    // In original code: const [previewOpened, { open: openPreview, close: closePreview }] = useDisclosure(false);
+    // But it wasn't used? Ah, I see `DatasetImagesView` has its own state. The openPreview/closePreview were unused in main component?
+    // Checking original code: `previewOpened` unused. `openPreview` unused. `closePreview` unused.
+    // Cleaned up unused vars.
 
-    const [formState, setFormState] = useState({
+    const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
+
+    const [formState, setFormState] = useState<DatasetForm>({
         name: '', path: '', type: 'yolo', description: ''
     });
 
     const queryClient = useQueryClient();
 
     // Query Datasets
-    const { data: datasets, isLoading } = useQuery({
+    const { data: datasets, isLoading } = useQuery<Dataset[]>({
         queryKey: ['datasets'],
         queryFn: async () => {
             const res = await api.get('/stepper/datasets');
@@ -35,7 +66,7 @@ export default function DatasetPage() {
 
     // Create Dataset Mutation
     const createMutation = useMutation({
-        mutationFn: (newDataset) => api.post('/stepper/datasets', newDataset),
+        mutationFn: (newDataset: DatasetForm) => api.post('/stepper/datasets', newDataset),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['datasets'] });
             close();
@@ -46,19 +77,6 @@ export default function DatasetPage() {
         createMutation.mutate(formState);
         setFormState({ name: '', path: '', type: 'yolo', description: '' }); // Reset
     };
-
-    // Since mock API returns list of datasets, let's assume we view details of the first one or user selects one
-    // For simplicity, let's just list all datasets in a table, and expanding one shows its images.
-    // Or better: Top section "Create", Bottom section "Datasets List". 
-    // Click on a dataset -> Go to detail page OR render right below.
-    // Let's render a list of datasets first.
-
-    // User requirement: "table ... filter, sort, pagination ... each row has image preview"
-    // Wait, the requirement says "Submit form -> table displays that dataset INFO". 
-    // And "each row has THAT IMAGE'S preview".
-    // This implies the table lists IMAGES of the dataset.
-
-    const [selectedDatasetId, setSelectedDatasetId] = useState(null);
 
     return (
         <Container fluid>
@@ -84,7 +102,7 @@ export default function DatasetPage() {
                         label="Type"
                         data={['yolo', 'coco', 'voc']}
                         value={formState.type}
-                        onChange={(val) => setFormState({ ...formState, type: val })}
+                        onChange={(val) => setFormState({ ...formState, type: val || 'yolo' })}
                     />
                     <Textarea
                         label="Description"
@@ -135,9 +153,13 @@ export default function DatasetPage() {
     );
 }
 
-function DatasetImagesView({ datasetId }) {
+interface DatasetImagesViewProps {
+    datasetId: number;
+}
+
+function DatasetImagesView({ datasetId }: DatasetImagesViewProps) {
     // Fetch specific dataset details to get images
-    const { data: dataset, isLoading } = useQuery({
+    const { data: dataset, isLoading } = useQuery<Dataset>({
         queryKey: ['dataset', datasetId],
         queryFn: async () => {
             const res = await api.get(`/stepper/datasets/${datasetId}`);
@@ -148,12 +170,12 @@ function DatasetImagesView({ datasetId }) {
     const [page, setPage] = useState(1);
     const pageSize = 5;
     const [search, setSearch] = useState('');
-    const [previewImage, setPreviewImage] = useState(null);
+    const [previewImage, setPreviewImage] = useState<ImageMetadata | null>(null);
     const [showBox, setShowBox] = useState(true);
 
-    if (isLoading) return <Paper flex={2} p="md" withBorder><LoadingOverlay visible /></Paper>;
+    if (isLoading || !dataset) return <Paper flex={2} p="md" withBorder><LoadingOverlay visible /></Paper>;
 
-    const filteredImages = (dataset?.images_metadata || []).filter(img =>
+    const filteredImages = (dataset.images_metadata || []).filter(img =>
         img.name.toLowerCase().includes(search.toLowerCase())
     );
 

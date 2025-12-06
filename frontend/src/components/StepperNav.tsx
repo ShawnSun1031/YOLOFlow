@@ -1,6 +1,11 @@
-import { useState } from 'react';
-import { Stepper, Stack, Text, UnstyledButton, Group, rem } from '@mantine/core';
-import { IconDatabase, IconCpu, IconDeviceFloppy, IconChevronRight } from '@tabler/icons-react';
+import { Stepper, Stack, UnstyledButton, rem } from '@mantine/core';
+import { IconDatabase, IconCpu, IconDeviceFloppy, Icon } from '@tabler/icons-react';
+
+interface StepperNavProps {
+    active: number;
+    setActive: (step: number) => void;
+    collapsed: boolean;
+}
 
 const steps = [
     { icon: IconDatabase, label: 'Dataset', description: 'Manage Data' },
@@ -8,7 +13,7 @@ const steps = [
     { icon: IconDeviceFloppy, label: 'Management', description: 'Manage Models' },
 ];
 
-export function StepperNav({ active, setActive, collapsed }) {
+export function StepperNav({ active, setActive, collapsed }: StepperNavProps) {
     // If collapsed, we show custom icon-only UI mimicking stepper state
     // If expanded, we show full Mantine Stepper vertical
 
@@ -28,7 +33,7 @@ export function StepperNav({ active, setActive, collapsed }) {
             ) : (
                 <Stack align="center" gap="lg">
                     {steps.map((step, index) => {
-                        const Icon = step.icon;
+                        const StepIcon = step.icon as Icon;
                         const isActive = index === active;
                         const isCompleted = index < active;
                         const color = isActive ? 'blue' : isCompleted ? 'blue' : 'gray';
@@ -42,7 +47,7 @@ export function StepperNav({ active, setActive, collapsed }) {
                                     opacity: isActive || isCompleted ? 1 : 0.5
                                 }}
                             >
-                                <Icon style={{ width: rem(24), height: rem(24), color: `var(--mantine-color-${color}-6)` }} />
+                                <StepIcon style={{ width: rem(24), height: rem(24), color: `var(--mantine-color-${color}-6)` }} />
                             </UnstyledButton>
                         );
                     })}

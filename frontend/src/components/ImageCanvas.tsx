@@ -1,14 +1,21 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { Box } from '@mantine/core';
 
-export function ImageCanvas({ src, boxes = [], showBoxes = true }) {
-    const canvasRef = useRef(null);
-    const imgRef = useRef(new Image());
+interface ImageCanvasProps {
+    src: string;
+    boxes?: number[][];
+    showBoxes?: boolean;
+}
+
+export function ImageCanvas({ src, boxes = [], showBoxes = true }: ImageCanvasProps) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const imgRef = useRef<HTMLImageElement>(new Image());
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
         imgRef.current.src = src;
         imgRef.current.onload = () => {
@@ -22,6 +29,7 @@ export function ImageCanvas({ src, boxes = [], showBoxes = true }) {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
         // Redraw when toggles change or boxes change
         if (imgRef.current.complete) {
@@ -29,7 +37,7 @@ export function ImageCanvas({ src, boxes = [], showBoxes = true }) {
         }
     }, [boxes, showBoxes]);
 
-    const draw = (ctx, w, h) => {
+    const draw = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
         ctx.clearRect(0, 0, w, h);
         ctx.drawImage(imgRef.current, 0, 0, w, h);
 
