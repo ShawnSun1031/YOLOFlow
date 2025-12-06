@@ -9,8 +9,13 @@ import './index.css';
 const queryClient = new QueryClient();
 const theme = createTheme({
     /** Put your mantine theme override here */
-    fontFamily: 'serif',
-    primaryColor: 'cyan',
+    fontFamily: "'Inter', sans-serif",
+    primaryColor: 'indigo',
+    defaultRadius: 'md',
+    headings: {
+        fontFamily: "'Inter', sans-serif",
+        fontWeight: '700',
+    },
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

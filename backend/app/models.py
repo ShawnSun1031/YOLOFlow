@@ -61,6 +61,7 @@ class Flow(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=True)
+    description = Column(String, nullable=True)
     status = Column(String, default="draft")  # draft, active, completed
     created_at = Column(DateTime, default=datetime.utcnow)
 

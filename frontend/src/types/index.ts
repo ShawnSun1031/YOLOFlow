@@ -1,6 +1,7 @@
 export interface Flow {
     id: string;
     name: string | null;
+    description: string | null;
     status: string;
     created_at: string;
     dataset_id: string | null;

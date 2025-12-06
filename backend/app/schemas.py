@@ -65,6 +65,7 @@ class Model(ModelBase):
 # --- Flow Schemas ---
 class FlowBase(BaseModel):
     name: str | None = None
+    description: str | None = None
     status: str = "draft"
 
 
@@ -76,6 +77,7 @@ class FlowCreate(FlowBase):
 
 class FlowUpdate(BaseModel):
     name: str | None = None
+    description: str | None = None
     status: str | None = None
     dataset_id: str | None = None
     training_id: str | None = None

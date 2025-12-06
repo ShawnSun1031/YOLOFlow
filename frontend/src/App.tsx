@@ -34,17 +34,6 @@ export default function App() {
                             element={<PlaceholderPage title="Model Management Step" />}
                         />
                     </Route>
-                    {/* Standalone pages if needed, or redirect old routes */}
-                    <Route path="dataset" element={<DatasetPage />} />{' '}
-                    {/* Standalone Dataset Manager */}
-                    <Route
-                        path="training"
-                        element={<PlaceholderPage title="Training Page (Standalone)" />}
-                    />
-                    <Route
-                        path="models"
-                        element={<PlaceholderPage title="Models Page (Standalone)" />}
-                    />
                 </Route>
             </Routes>
         </BrowserRouter>

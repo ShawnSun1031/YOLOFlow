@@ -3,3 +3,38 @@
 :root {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background-attachment: fixed;
+    transition: background 0.3s ease;
+}
+
+/* Light Mode Background */
+:root[data-mantine-color-scheme='light'] body {
+    background-color: #f8f9fa;
+    background-image:
+        linear-gradient(rgba(231, 245, 255, 0.8) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(231, 245, 255, 0.8) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(208, 235, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+    background-size:
+        40px 40px,
+        40px 40px,
+        100% 100%;
+}
+
+/* Dark Mode Background */
+:root[data-mantine-color-scheme='dark'] body {
+    background-color: #0f111a;
+    background-image:
+        linear-gradient(rgba(76, 110, 245, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(76, 110, 245, 0.05) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, rgba(59, 91, 219, 0.15) 0%, transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(21, 170, 191, 0.1) 0%, transparent 50%);
+    background-size:
+        40px 40px,
+        40px 40px,
+        100% 100%,
+        100% 100%;
+}
