@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
     Container,
     Title,
@@ -8,43 +9,18 @@ import {
     TextInput,
     Select,
     Textarea,
-    Table,
-    ScrollArea,
     Modal,
-    Checkbox,
-    Pagination,
-    LoadingOverlay,
+    ActionIcon,
     Badge,
     Stack,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { IconSearch, IconEye } from '@tabler/icons-react';
-import axios from 'axios';
-import { ImageCanvas } from '../components/ImageCanvas';
-
-// API Client (can be moved to separate file)
-const api = axios.create({ baseURL: 'http://localhost:8000/api' });
-
-interface ImageMetadata {
-    id: string | number;
-    name: string;
-    url: string;
-    size: string;
-    tags: string[];
-    path: string;
-    format: string;
-}
-
-interface Dataset {
-    id: number;
-    name: string;
-    path: string;
-    type: string;
-    description: string;
-    created_at: string;
-    images_metadata?: ImageMetadata[];
-}
+import { IconEye, IconArrowLeft, IconPlus } from '@tabler/icons-react';
+import { MantineReactTable, useMantineReactTable, type MRT_ColumnDef } from 'mantine-react-table';
+import { api } from '../api/client';
+import { Dataset } from '../types';
+import { DatasetImagesView } from './DatasetImagesView'; // Extracting this component
 
 interface DatasetForm {
     name: string;
@@ -54,14 +30,17 @@ interface DatasetForm {
 }
 
 export default function DatasetPage() {
-    const [opened, { open, close }] = useDisclosure(false); // Modal for upload
-    // Modal for preview - actually used inside DatasetImagesView or we might want to lift state?
-    // In original code: const [previewOpened, { open: openPreview, close: closePreview }] = useDisclosure(false);
-    // But it wasn't used? Ah, I see `DatasetImagesView` has its own state. The openPreview/closePreview were unused in main component?
-    // Checking original code: `previewOpened` unused. `openPreview` unused. `closePreview` unused.
-    // Cleaned up unused vars.
+    const { flowId } = useParams<{ flowId: string }>();
+    const navigate = useNavigate();
 
-    const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
+    const [opened, { open, close }] = useDisclosure(false); // Modal for upload
+    const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null); // Selecting for Next step
+    const [previewDatasetId, setPreviewDatasetId] = useState<string | null>(null); // Full page preview
+
+    // Filter & Pagination State - MRT handles this now
+    // const [search, setSearch] = useState('');
+    // const [page, setPage] = useState(1);
+    // const pageSize = 10;
 
     const [formState, setFormState] = useState<DatasetForm>({
         name: '',
@@ -73,7 +52,11 @@ export default function DatasetPage() {
     const queryClient = useQueryClient();
 
     // Query Datasets
-    const { data: datasets, isLoading } = useQuery<Dataset[]>({
+    const {
+        data: datasets,
+        isLoading,
+        isError,
+    } = useQuery<Dataset[]>({
         queryKey: ['datasets'],
         queryFn: async () => {
             const res = await api.get('/stepper/datasets');
@@ -90,17 +73,172 @@ export default function DatasetPage() {
         },
     });
 
+    // Update Flow Mutation (to link dataset)
+    const updateFlowMutation = useMutation({
+        mutationFn: (datasetId: string) => api.patch(`/flows/${flowId}`, { dataset_id: datasetId }),
+        onSuccess: () => {
+            navigate(`/flows/${flowId}/training`);
+        },
+    });
+
     const handleSubmit = () => {
         createMutation.mutate(formState);
         setFormState({ name: '', path: '', type: 'yolo', description: '' }); // Reset
     };
 
+    const handleNext = () => {
+        if (selectedDatasetId) {
+            updateFlowMutation.mutate(selectedDatasetId);
+        }
+    };
+
+    const columns = useMemo<MRT_ColumnDef<Dataset>[]>(
+        () => [
+            {
+                accessorKey: 'name',
+                header: 'Name',
+            },
+            {
+                accessorKey: 'type',
+                header: 'Type',
+                Cell: ({ cell }) => <Badge>{cell.getValue<string>()}</Badge>,
+            },
+            {
+                accessorKey: 'status',
+                header: 'Status',
+                Cell: ({ cell }) => {
+                    const status = cell.getValue<string>();
+                    return (
+                        <Badge color={status === 'active' ? 'green' : 'gray'} variant="dot">
+                            {status}
+                        </Badge>
+                    );
+                },
+            },
+            {
+                accessorKey: 'description',
+                header: 'Description',
+                Cell: ({ cell }) => (
+                    <div
+                        style={{
+                            maxWidth: 300,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        {cell.getValue<string>()}
+                    </div>
+                ),
+            },
+            {
+                accessorKey: 'created_at',
+                header: 'Created At',
+                Cell: ({ cell }) => new Date(cell.getValue<string>()).toLocaleDateString(),
+            },
+        ],
+        [],
+    );
+
+    const table = useMantineReactTable({
+        columns,
+        data: datasets || [],
+        enableRowActions: true,
+        renderRowActions: ({ row }) => (
+            <ActionIcon
+                variant="light"
+                color="blue"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewDatasetId(row.original.id);
+                }}
+            >
+                <IconEye size={16} />
+            </ActionIcon>
+        ),
+        // enableRowSelection: !!flowId,
+        // onRowSelectionChange: (updater) => {
+        //     // MRT row selection handling is different, adapted here for single select behavior if needed or just styling
+        //     // But we can also use moutineRowClick for selection logic as before
+        // },
+        mantineTableBodyRowProps: ({ row }) => ({
+            onClick: () => {
+                if (flowId) {
+                    setSelectedDatasetId(row.original.id);
+                }
+            },
+            sx: {
+                cursor: flowId ? 'pointer' : 'default',
+                backgroundColor:
+                    selectedDatasetId === row.original.id
+                        ? 'var(--mantine-color-blue-0)'
+                        : undefined,
+            },
+        }),
+        state: {
+            isLoading,
+            showAlertBanner: isError,
+            showProgressBars: isLoading,
+        },
+    });
+
+    // PREVIEW MODE
+    if (previewDatasetId) {
+        return (
+            <Container fluid h="100%" display="flex" style={{ flexDirection: 'column' }}>
+                <Group mb="md">
+                    <Button
+                        variant="subtle"
+                        leftSection={<IconArrowLeft size={16} />}
+                        onClick={() => setPreviewDatasetId(null)}
+                    >
+                        Back to List
+                    </Button>
+                    <Title order={3}>Dataset Preview</Title>
+                </Group>
+
+                <Paper
+                    flex={1}
+                    withBorder
+                    p="md"
+                    style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                >
+                    <DatasetImagesView datasetId={previewDatasetId} />
+                </Paper>
+            </Container>
+        );
+    }
+
+    // MAIN LIST MODE
     return (
-        <Container fluid>
+        <Container fluid h="100%" display="flex" style={{ flexDirection: 'column' }}>
             <Group justify="space-between" mb="md">
-                <Title order={2}>Datasets</Title>
-                <Button onClick={open}>Create dataset</Button>
+                <Title order={2}>{flowId ? 'Step 1: Select Dataset' : 'Dataset Management'}</Title>
+                <Group>
+                    <Button onClick={open} leftSection={<IconPlus size={16} />}>
+                        Create Dataset
+                    </Button>
+                    {flowId && (
+                        <Button
+                            onClick={handleNext}
+                            disabled={!selectedDatasetId}
+                            loading={updateFlowMutation.isPending}
+                        >
+                            Next: Training
+                        </Button>
+                    )}
+                </Group>
             </Group>
+
+            <Paper
+                flex={1}
+                withBorder
+                p="md"
+                display="flex"
+                style={{ flexDirection: 'column', overflow: 'hidden' }}
+            >
+                <MantineReactTable table={table} />
+            </Paper>
 
             <Modal opened={opened} onClose={close} title="Create New Dataset">
                 <Stack>
@@ -133,193 +271,6 @@ export default function DatasetPage() {
                     </Button>
                 </Stack>
             </Modal>
-
-            {/* List of datasets */}
-            <Group align="flex-start" py="md">
-                <Paper flex={1} withBorder p="md">
-                    <Title order={4} mb="md">
-                        Available Datasets
-                    </Title>
-                    {isLoading ? (
-                        <LoadingOverlay visible />
-                    ) : (
-                        <Stack>
-                            {datasets?.map((ds) => (
-                                <Paper
-                                    key={ds.id}
-                                    withBorder
-                                    p="sm"
-                                    style={{
-                                        cursor: 'pointer',
-                                        borderColor:
-                                            selectedDatasetId === ds.id
-                                                ? 'var(--mantine-color-blue-5)'
-                                                : undefined,
-                                    }}
-                                    onClick={() => setSelectedDatasetId(ds.id)}
-                                >
-                                    <Group justify="space-between">
-                                        <div>
-                                            <Title order={5}>{ds.name}</Title>
-                                            <Badge>{ds.type}</Badge>
-                                        </div>
-                                        <Badge color="gray">
-                                            {new Date(ds.created_at).toLocaleDateString()}
-                                        </Badge>
-                                    </Group>
-                                </Paper>
-                            ))}
-                        </Stack>
-                    )}
-                </Paper>
-
-                {/* Images Table for Selected Dataset */}
-                {selectedDatasetId && <DatasetImagesView datasetId={selectedDatasetId} />}
-            </Group>
         </Container>
-    );
-}
-
-interface DatasetImagesViewProps {
-    datasetId: number;
-}
-
-function DatasetImagesView({ datasetId }: DatasetImagesViewProps) {
-    // Fetch specific dataset details to get images
-    const { data: dataset, isLoading } = useQuery<Dataset>({
-        queryKey: ['dataset', datasetId],
-        queryFn: async () => {
-            const res = await api.get(`/stepper/datasets/${datasetId}`);
-            return res.data;
-        },
-    });
-
-    const [page, setPage] = useState(1);
-    const pageSize = 5;
-    const [search, setSearch] = useState('');
-    const [previewImage, setPreviewImage] = useState<ImageMetadata | null>(null);
-    const [showBox, setShowBox] = useState(true);
-
-    if (isLoading || !dataset)
-        return (
-            <Paper flex={2} p="md" withBorder>
-                <LoadingOverlay visible />
-            </Paper>
-        );
-
-    const filteredImages = (dataset.images_metadata || []).filter((img) =>
-        img.name.toLowerCase().includes(search.toLowerCase()),
-    );
-
-    const total = filteredImages.length;
-    const paginatedImages = filteredImages.slice((page - 1) * pageSize, page * pageSize);
-
-    return (
-        <Paper flex={3} withBorder p="md">
-            <Title order={4} mb="md">
-                {dataset.name} - Images
-            </Title>
-
-            <Group mb="md">
-                <TextInput
-                    placeholder="Search images..."
-                    leftSection={<IconSearch size={16} />}
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </Group>
-
-            <ScrollArea>
-                <Table striped highlightOnHover>
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Preview</Table.Th>
-                            <Table.Th>Name</Table.Th>
-                            <Table.Th>Size</Table.Th>
-                            <Table.Th>Tags</Table.Th>
-                            <Table.Th>Action</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                        {paginatedImages.map((img) => (
-                            <Table.Tr key={img.id}>
-                                <Table.Td>
-                                    <img
-                                        src={img.url}
-                                        alt="mini"
-                                        style={{
-                                            width: 40,
-                                            height: 40,
-                                            objectFit: 'cover',
-                                            borderRadius: 4,
-                                        }}
-                                    />
-                                </Table.Td>
-                                <Table.Td>{img.name}</Table.Td>
-                                <Table.Td>{img.size}</Table.Td>
-                                <Table.Td>
-                                    {img.tags.map((t) => (
-                                        <Badge key={t} size="xs" mr={4}>
-                                            {t}
-                                        </Badge>
-                                    ))}
-                                </Table.Td>
-                                <Table.Td>
-                                    <Button
-                                        size="xs"
-                                        variant="light"
-                                        leftSection={<IconEye size={12} />}
-                                        onClick={() => setPreviewImage(img)}
-                                    >
-                                        Details
-                                    </Button>
-                                </Table.Td>
-                            </Table.Tr>
-                        ))}
-                    </Table.Tbody>
-                </Table>
-            </ScrollArea>
-
-            <Pagination
-                total={Math.ceil(total / pageSize)}
-                value={page}
-                onChange={setPage}
-                mt="md"
-            />
-
-            {/* Detail Modal with Canvas */}
-            <Modal
-                size="xl"
-                opened={!!previewImage}
-                onClose={() => setPreviewImage(null)}
-                title={previewImage?.name}
-            >
-                {previewImage && (
-                    <Stack>
-                        <Group>
-                            <Checkbox
-                                label="Show Bounding Boxes"
-                                checked={showBox}
-                                onChange={(e) => setShowBox(e.currentTarget.checked)}
-                            />
-                        </Group>
-                        <ImageCanvas
-                            src={previewImage.url}
-                            showBoxes={showBox}
-                            boxes={[
-                                // Generating mock boxes based on tags for demo
-                                [0, 0.5, 0.5, 0.4, 0.3], // class 0, center, center, w, h
-                                [1, 0.2, 0.2, 0.1, 0.1],
-                            ]}
-                        />
-                        <Textarea
-                            label="Description"
-                            readOnly
-                            value={`Path: ${previewImage.path}\nSize: ${previewImage.size}\nFormat: ${previewImage.format}`}
-                        />
-                    </Stack>
-                )}
-            </Modal>
-        </Paper>
     );
 }

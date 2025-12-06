@@ -11,6 +11,7 @@ class DatasetBase(BaseModel):
     url: str | None = None
     type: str  # e.g. 'yolo', 'coco'
     description: str | None = None
+    status: str = "active"
     tags: list[str] = []
 
 
@@ -68,6 +69,14 @@ class FlowBase(BaseModel):
 
 
 class FlowCreate(FlowBase):
+    dataset_id: str | None = None
+    training_id: str | None = None
+    model_id: str | None = None
+
+
+class FlowUpdate(BaseModel):
+    name: str | None = None
+    status: str | None = None
     dataset_id: str | None = None
     training_id: str | None = None
     model_id: str | None = None

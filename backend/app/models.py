@@ -20,6 +20,7 @@ class Dataset(Base):
     url = Column(String, nullable=True)
     type = Column(String)  # e.g., 'classification', 'detection'
     description = Column(String, nullable=True)
+    status = Column(String, default="active")  # active, archived
     tags = Column(JSON, default=list)
     created_at = Column(DateTime, default=datetime.utcnow)
 
