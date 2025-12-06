@@ -7,9 +7,9 @@ Quickstart
 1. Create virtualenv and install dependencies:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+cd backend
+uv sync --locked
+. .venv/bin/activate
 ```
 
 2. (Optional) Start MLflow server locally:
@@ -29,8 +29,8 @@ Frontend (dev):
 
 ```bash
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Docker compose (backend + mlflow):
@@ -44,7 +44,7 @@ Configuring frontend backend URL
 - For Vite dev server, set `VITE_API_URL` when starting the dev server. Example:
 
 ```bash
-VITE_API_URL=http://localhost:8000 npm run dev
+VITE_API_URL=http://localhost:8000 pnpm run dev
 ```
 
 - Alternatively, when serving the built frontend embed `window.__YOLOFLOW_API_URL__` before the app script in `index.html`:
