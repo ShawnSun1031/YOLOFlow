@@ -167,11 +167,11 @@ export default function DatasetPage() {
                     setSelectedDatasetId(row.original.id);
                 }
             },
-            sx: {
+            style: {
                 cursor: flowId ? 'pointer' : 'default',
                 backgroundColor:
                     selectedDatasetId === row.original.id
-                        ? 'var(--mantine-color-blue-0)'
+                        ? 'var(--mantine-color-blue-light)'
                         : undefined,
             },
         }),
